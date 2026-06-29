@@ -1,0 +1,119 @@
+@theme {
+
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
+
+  --color-foreground: var(--foreground);
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+
+  --color-border: var(--border);
+
+}
+
+/* ===========================
+   PAPER
+=========================== */
+
+:root,
+[data-theme="paper"] {
+
+  --background:#FAFAF9;
+  --surface:#FFFFFF;
+  --surface-hover:#F5F5F4;
+
+  --foreground:#1F2937;
+  --muted-foreground:#6B7280;
+
+  --primary:#DC2626;
+  --primary-hover:#B91C1C;
+  --primary-foreground:#FFFFFF;
+
+  --border:#E5E7EB;
+
+  --shadow-card:0 6px 20px rgba(0,0,0,.05);
+  --shadow-soft:0 3px 10px rgba(0,0,0,.05);
+
+}
+
+
+/* ===========================
+   MIDNIGHT
+=========================== */
+
+[data-theme="midnight"] {
+
+  --background:#0F1115;
+  --surface:#1A1D24;
+  --surface-hover:#232833;
+
+  --foreground:#F3F4F6;
+  --muted-foreground:#9CA3AF;
+
+  --primary:#EF4444;
+  --primary-hover:#DC2626;
+  --primary-foreground:#FFFFFF;
+
+  --border:#2D3748;
+
+  --shadow-card:0 10px 25px rgba(0,0,0,.35);
+  --shadow-soft:0 4px 10px rgba(0,0,0,.30);
+
+}
+
+
+/* ===========================
+   SAKURA
+=========================== */
+
+[data-theme="sakura"] {
+
+  --background:#FFF3F6;
+  --surface:#FFFDFD;
+  --surface-hover:#FFF6F8;
+
+  --foreground:#3B2F36;
+  --muted-foreground:#6D5A61;
+
+  --primary:#D65A7A;
+  --primary-hover:#C94C6D;
+  --primary-foreground:#FFFFFF;
+
+  --border:#F3B8C8;
+
+  --shadow-card:0 8px 20px rgba(214,90,122,.08);
+  --shadow-soft:0 3px 10px rgba(214,90,122,.08);
+
+}
+
+
+/* ===========================
+   Global
+=========================== */
+
+html,
+body,
+#root{
+
+    background:var(--background);
+    color:var(--foreground);
+
+    transition:
+        background-color .25s ease,
+        color .25s ease;
+
+}
+
+*{
+
+    transition:
+        background-color .25s ease,
+        color .25s ease,
+        border-color .25s ease,
+        box-shadow .25s ease;
+
+}
