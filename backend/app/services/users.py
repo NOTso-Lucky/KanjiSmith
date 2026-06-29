@@ -5,6 +5,8 @@ from app.core.security import hash_password
 from sqlalchemy import select
 from fastapi import HTTPException
 
+def get_user_by_id(db:Session,user_id:int):
+    return db.get(User,user_id)
 
 def get_user_by_username(db: Session,username:str):
     return db.execute(
