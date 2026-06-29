@@ -11,7 +11,7 @@ class RegisterResponse(BaseModel):
     username: str
 
 class LoginRequest(BaseModel):
-    username:str
+    email:EmailStr
     password:str
 
 class TokenResponse(BaseModel):
