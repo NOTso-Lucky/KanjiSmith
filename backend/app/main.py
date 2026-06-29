@@ -1,11 +1,9 @@
 from fastapi import FastAPI
-from app.core.database import Base,engine
+from app.db.database import Base,engine
 import app.models
 from app.routers import words, auth,users
 from fastapi.middleware.cors import CORSMiddleware
 
-
-Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="KanjiSmith API",

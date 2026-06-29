@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { login } from "../services/auth";
+import { login, getCurrentUser } from "../services/auth";
 import { useNavigate } from "react-router-dom";
 import {
   Mail,
@@ -9,8 +9,9 @@ import {
   EyeOff,
   Check,
 } from "lucide-react";
-
+import { useAuth } from "../contexts/AuthContext";
 export default function LoginCard() {
+  const { setUser } = useAuth();
   const navigate=useNavigate()
 
   const [showPassword, setShowPassword] = useState(false);
@@ -33,10 +34,16 @@ export default function LoginCard() {
       password,
     });
 
-    console.log(response);
-
+    // Save JWT
     localStorage.setItem("token", response.access_token);
 
+    // Fetch logged-in user
+    const currentUser = await getCurrentUser();
+
+    // Update AuthContext
+    setUser(currentUser);
+
+    // Redirect
     navigate("/dashboard");
   } catch (error) {
     alert(error.message);
