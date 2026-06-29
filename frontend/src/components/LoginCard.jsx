@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { login } from "../services/auth";
+import { useNavigate } from "react-router-dom";
 import {
   Mail,
   Lock,
@@ -9,24 +11,37 @@ import {
 } from "lucide-react";
 
 export default function LoginCard() {
+  const navigate=useNavigate()
+
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    console.log({
+  if (!email || !password) {
+    alert("Please fill all fields.");
+    return;
+  }
+
+  try {
+    const response = await login({
       email,
       password,
-      rememberMe,
     });
 
-    // Later:
-    // await login(email, password)
-  };
+    console.log(response);
+
+    localStorage.setItem("token", response.access_token);
+
+    navigate("/dashboard");
+  } catch (error) {
+    alert(error.message);
+  }
+};
 
   return (
     <div className="w-full max-w-[470px] rounded-2xl border border-border bg-surface p-7 shadow-[var(--shadow-card)] sm:p-8">

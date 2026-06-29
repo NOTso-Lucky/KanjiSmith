@@ -1,9 +1,10 @@
 import AuthLayout from "../layouts/AuthLayout";
+import RegisterCard from "../components/RegisterCard";
 
 function Register() {
   return (
     <AuthLayout>
-      haha
+      <RegisterCard />
     </AuthLayout>
   );
 }
