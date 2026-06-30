@@ -1,7 +1,6 @@
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
-
-from app.crud import crud_deck, crud_deck_flashcard
+from app.crud import crud_deck, crud_deck_flashcard, crud_user_flashcard
 from app.models.deck import Deck
 from app.models.deck_flashcard import DeckFlashcard
 from app.models.flashcard import Flashcard
@@ -133,8 +132,51 @@ def add_flashcard_to_deck(
         position=position,
     )
 
-    return crud_deck_flashcard.add_flashcard_to_deck(db, entry)
+    created_entry = crud_deck_flashcard.add_flashcard_to_deck(db, entry)
 
+    crud_user_flashcard.get_or_create_entry(db, user.id, flashcard_id)
+
+    return created_entry
+
+def update_flashcard_in_deck(
+    db: Session,
+    deck_id: int,
+    flashcard_id: int,
+    updates: dict,
+    user: User,
+) -> Flashcard:
+    deck = _ensure_owned(crud_deck.get_deck_by_id(db, deck_id), user)
+
+    entry = crud_deck_flashcard.get_entry(db, deck.id, flashcard_id)
+
+    if entry is None:
+        raise HTTPException(
+            status_code=404,
+            detail="This flashcard is not in the deck",
+        )
+
+    flashcard = db.get(Flashcard, flashcard_id)
+
+    if flashcard is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Flashcard not found",
+        )
+
+    was_owned = flashcard.owner_id == user.id
+
+    result = fork_flashcard_for_edit(db, flashcard, user, updates)
+
+    if not was_owned:
+        # A new fork was created — repoint only this deck's entry to it,
+        # keep its position, and leave every other deck reference alone.
+        entry.flashcard_id = result.id
+        db.commit()
+        db.refresh(entry)
+
+        crud_user_flashcard.get_or_create_entry(db, user.id, result.id)
+
+    return result
 
 def remove_flashcard_from_deck(
     db: Session,
@@ -159,29 +201,41 @@ def fork_flashcard_for_edit(
     db: Session,
     flashcard: Flashcard,
     user: User,
+    updates: dict,
 ) -> Flashcard:
     """Return a flashcard the user can safely edit.
 
-    If the flashcard is already owned by the user, return it as-is.
+    If the flashcard is already owned by the user, apply updates in place.
     If it's official (or owned by someone else), create a personal copy
-    linked back to the original via source_flashcard_id, and leave the
-    original untouched.
+    linked back to the original via source_flashcard_id, with the given
+    updates already applied, and leave the original untouched.
     """
 
     if flashcard.owner_id == user.id:
+        for field, value in updates.items():
+            setattr(flashcard, field, value)
+
+        db.commit()
+        db.refresh(flashcard)
+
         return flashcard
+
+    base_fields = {
+        "expression": flashcard.expression,
+        "reading": flashcard.reading,
+        "meaning": flashcard.meaning,
+        "example_sentence": flashcard.example_sentence,
+        "example_translation": flashcard.example_translation,
+        "notes": flashcard.notes,
+        "jlpt_level": flashcard.jlpt_level,
+        "card_type": flashcard.card_type,
+    }
+    base_fields.update(updates)
 
     forked = Flashcard(
         owner_id=user.id,
         source_flashcard_id=flashcard.id,
-        expression=flashcard.expression,
-        reading=flashcard.reading,
-        meaning=flashcard.meaning,
-        example_sentence=flashcard.example_sentence,
-        example_translation=flashcard.example_translation,
-        notes=flashcard.notes,
-        jlpt_level=flashcard.jlpt_level,
-        card_type=flashcard.card_type,
+        **base_fields,
     )
 
     db.add(forked)

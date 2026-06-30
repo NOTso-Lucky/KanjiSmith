@@ -1,5 +1,52 @@
 # KanjiSmith - PROJECT_LOG.md
 
+## 2026-06-30 — Flashcard CRUD
+
+### Standalone Flashcard Creation
+
+* Implemented `POST /flashcards` for creating a flashcard from scratch.
+* Always sets `owner_id` to the current user; not deck-scoped.
+* Frontend is expected to chain this with the existing add-to-deck endpoint if the card should go in a deck immediately (no combined create+attach endpoint).
+
+### Deck-Scoped Flashcard Editing
+
+* Implemented `PATCH /decks/{deck_id}/flashcards/{flashcard_id}`.
+* Editing is deliberately deck-scoped, not global — editing a card "as it appears in this deck" must not change how it appears in other decks.
+* If the flashcard is already owned by the user, it's edited in place.
+* If it's official or owned by someone else, editing creates a personal fork (`source_flashcard_id` links back to the original) with the requested changes baked in directly, rather than copying then editing.
+* On fork, only the triggering deck's `deck_flashcards` row is repointed to the new fork (same position, same deck). All other decks referencing the original flashcard — including the same user's other decks — are left untouched.
+* Forked flashcards get a brand-new `user_flashcards` row at default state. SRS progress does not carry over from the original, since a fork can change any field (including expression/reading), so it may no longer represent the same word.
+* `FlashcardUpdate` schema treats unsent fields as "don't touch," not "set to null" (`exclude_unset=True`), so partial edits are safe.
+* No standalone `PATCH /flashcards/{id}` exists — even a freshly created, unattached flashcard must be added to a deck before it can be edited. Considered and deliberately rejected to avoid a second editing pathway.
+
+### Files Added
+
+* `app/routers/flashcard.py`
+
+### Files Updated
+
+* `app/schemas/flashcard.py` — added `FlashcardCreate`, `FlashcardUpdate`
+* `app/crud/crud_flashcard.py` — added `get_by_id`, `create_flashcard`
+* `app/services/deck_service.py` — reworked `fork_flashcard_for_edit` to accept and apply updates during forking instead of copying then editing; added `update_flashcard_in_deck`
+* `app/routers/deck.py` — added `PATCH /{deck_id}/flashcards/{flashcard_id}`
+* `app/main.py` — registered flashcard router
+
+### Testing
+
+* Manually verified via curl: standalone create, in-place edit confirmed unchanged id, fork-on-edit confirmed new id + correct `source_flashcard_id`, deck repointing confirmed (editing deck showed the fork, other deck still showed the original), independent `user_flashcards` rows confirmed in Supabase for original vs. fork.
+
+### Current Status
+
+* Authentication completed.
+* Intelligent flashcard search pipeline completed.
+* Deck management completed (CRUD + flashcard operations).
+* Flashcard CRUD completed (standalone create, deck-scoped edit with fork-on-edit).
+
+### Next Milestone
+
+* Review Engine (SRS)
+* Dashboard Statistics
+
 ## 2026-06-30 — Deck Management
 
 ### Deck CRUD

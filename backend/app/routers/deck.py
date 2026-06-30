@@ -11,6 +11,7 @@ from app.schemas.deck import (
     DeckResponse,
     DeckUpdate,
 )
+from app.schemas.flashcard import FlashcardResponse, FlashcardUpdate
 from app.services import deck_service
 
 router = APIRouter(
@@ -91,6 +92,26 @@ def add_flashcard_to_deck(
         current_user,
     )
 
+@router.patch(
+    "/{deck_id}/flashcards/{flashcard_id}",
+    response_model=FlashcardResponse,
+)
+def update_flashcard_in_deck(
+    deck_id: int,
+    flashcard_id: int,
+    payload: FlashcardUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    updates = payload.model_dump(exclude_unset=True)
+
+    return deck_service.update_flashcard_in_deck(
+        db,
+        deck_id,
+        flashcard_id,
+        updates,
+        current_user,
+    )
 
 @router.delete(
     "/{deck_id}/flashcards/{flashcard_id}",

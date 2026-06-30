@@ -29,7 +29,7 @@ Status: ✅ COMPLETE
 
 * [x] Deck CRUD
 * [x] Deck ↔ Flashcard Operations
-* [ ] Flashcard CRUD
+* [x] Flashcard CRUD
 * [ ] Review Engine
 * [ ] Dashboard Statistics
 
