@@ -1,5 +1,86 @@
 # KanjiSmith - PROJECT_LOG.md
 
+## 2026-06-30 
+
+### Search System
+
+* Implemented automatic script detection for search queries.
+* Added separate search flow for:
+
+  * Kanji
+  * Hiragana
+  * Katakana
+  * Latin (English/Romaji)
+* Refactored search logic into `SearchService`.
+
+### Jisho Integration
+
+* Integrated Jisho API as the fallback source for unknown words.
+* Implemented parsing for:
+
+  * Japanese expression
+  * Reading
+  * English meaning
+  * JLPT level
+* Added automatic romaji generation from Japanese readings.
+
+### Intelligent Result Selection
+
+* Designed and implemented `select_best_entry()` to choose the most suitable dictionary entry from Jisho results.
+* Ranking considers:
+
+  * Common vocabulary (`is_common`)
+  * JLPT availability
+  * Expression length
+  * Parts of speech
+  * Tags (slang, obsolete, children's language, etc.)
+  * Additional information fields
+  * English definition matching
+* Improved English definition comparison by stripping parenthesized content before scoring.
+
+### Flashcard Pipeline
+
+* Added automatic creation of official flashcards when a searched word does not already exist in the database.
+* Existing flashcards are returned directly without creating duplicates.
+* Generated flashcards include:
+
+  * Expression
+  * Reading
+  * Romaji
+  * Meaning
+  * JLPT level
+  * Gemini-generated example sentence (when available)
+
+### Files Added
+
+* `app/services/search_service.py`
+
+### Files Updated
+
+* `app/routers/words.py`
+* `app/services/jisho.py`
+* `app/services/script_detector.py`
+* `app/services/gemini.py`
+* `app/crud/crud_flashcard.py`
+* `app/schemas/words.py`
+* `app/models/flashcard.py`
+* Related files required to support the new search pipeline.
+
+### Current Status
+
+* Authentication completed.
+* Intelligent flashcard search pipeline completed.
+* Automatic flashcard caching implemented.
+
+### Next Milestone
+
+* Deck Management
+
+  * Deck CRUD
+  * Add/Remove Flashcards
+  * Deck listing
+  * Study workflow
+
 ## 2026-06-29 — Phase 2 Complete: Database Architecture & PostgreSQL Migration
 
 ### Major Milestone
