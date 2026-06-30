@@ -1,5 +1,105 @@
 # KanjiSmith - PROJECT_LOG.md
 
+## 2026-06-30 — Deck Management
+
+### Deck CRUD
+
+* Implemented full deck management API.
+* Decks support create, read, update, delete.
+* Official decks (`owner_id = NULL`) are seed/admin-only; no API path creates them.
+* Duplicate deck titles per owner are rejected at creation time.
+
+### Deck ↔ Flashcard Operations
+## 2026-06-30 — Deck Management
+
+### Deck CRUD
+
+* Implemented full deck management API.
+* Decks support create, read, update, delete.
+* Official decks (`owner_id = NULL`) are seed/admin-only; no API path creates them.
+* Duplicate deck titles per owner are rejected at creation time.
+
+### Deck ↔ Flashcard Operations
+
+* Implemented add flashcard to deck, remove flashcard from deck, and list flashcards in a deck.
+* Position is auto-assigned on insert (append to end of deck).
+* Duplicate flashcard entries within the same deck are rejected (409).
+* Deck flashcard listing eager-loads flashcard data to avoid N+1 queries.
+
+### Flashcard Fork-on-Edit (prepared, not yet wired to a route)
+
+* Added `fork_flashcard_for_edit()` in the deck service.
+* Editing an official or another user's flashcard will create a personal copy linked via `source_flashcard_id`, leaving the original untouched.
+* Editing a flashcard the user already owns operates in place.
+* No flashcard edit/delete endpoints exist yet — this is groundwork for upcoming Flashcard CRUD.
+
+### Files Added
+
+* `app/crud/crud_deck.py`
+* `app/crud/crud_deck_flashcard.py`
+* `app/schemas/flashcard.py`
+* `app/services/deck_service.py`
+* `app/routers/deck.py`
+
+### Files Updated
+
+* `app/schemas/deck.py` — added `DeckFlashcardCreate`, `DeckFlashcardResponse`, `DeckDetailResponse`
+* `app/main.py` — registered deck router
+
+### Testing
+
+* Manually verified via curl: create deck, search word, add flashcard to deck, list deck contents, duplicate-add rejected with 409, remove flashcard, confirmed removal.
+
+### Current Status
+
+* Authentication completed.
+* Intelligent flashcard search pipeline completed.
+* Deck management completed (CRUD + flashcard operations).
+
+### Next Milestone
+
+* Flashcard CRUD (standalone create/edit/delete, wiring up fork-on-edit)
+* Review Engine (SRS)
+* Implemented add flashcard to deck, remove flashcard from deck, and list flashcards in a deck.
+* Position is auto-assigned on insert (append to end of deck).
+* Duplicate flashcard entries within the same deck are rejected (409).
+* Deck flashcard listing eager-loads flashcard data to avoid N+1 queries.
+
+### Flashcard Fork-on-Edit (prepared, not yet wired to a route)
+
+* Added `fork_flashcard_for_edit()` in the deck service.
+* Editing an official or another user's flashcard will create a personal copy linked via `source_flashcard_id`, leaving the original untouched.
+* Editing a flashcard the user already owns operates in place.
+* No flashcard edit/delete endpoints exist yet — this is groundwork for upcoming Flashcard CRUD.
+
+### Files Added
+
+* `app/crud/crud_deck.py`
+* `app/crud/crud_deck_flashcard.py`
+* `app/schemas/flashcard.py`
+* `app/services/deck_service.py`
+* `app/routers/deck.py`
+
+### Files Updated
+
+* `app/schemas/deck.py` — added `DeckFlashcardCreate`, `DeckFlashcardResponse`, `DeckDetailResponse`
+* `app/main.py` — registered deck router
+
+### Testing
+
+* Manually verified via curl: create deck, search word, add flashcard to deck, list deck contents, duplicate-add rejected with 409, remove flashcard, confirmed removal.
+
+### Current Status
+
+* Authentication completed.
+* Intelligent flashcard search pipeline completed.
+* Deck management completed (CRUD + flashcard operations).
+
+### Next Milestone
+
+* Flashcard CRUD (standalone create/edit/delete, wiring up fork-on-edit)
+* Review Engine (SRS)
+
 ## 2026-06-30 
 
 ### Search System

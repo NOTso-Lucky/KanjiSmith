@@ -26,6 +26,11 @@ class Flashcard(Base, TimestampMixin):
         nullable=True,
         index=True,
     )
+    source_flashcard_id: Mapped[int | None] = mapped_column(
+        ForeignKey("flashcards.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
 
     expression: Mapped[str] = mapped_column(
         String(255),
@@ -86,4 +91,14 @@ class Flashcard(Base, TimestampMixin):
     reviews: Mapped[list["ReviewHistory"]] = relationship(
         back_populates="flashcard",
         cascade="all, delete-orphan",
+    )
+    source_flashcard: Mapped["Flashcard | None"] = relationship(
+        remote_side=[id],
+        foreign_keys=[source_flashcard_id],
+        back_populates="derived_flashcards",
+    )
+
+    derived_flashcards: Mapped[list["Flashcard"]] = relationship(
+        foreign_keys=[source_flashcard_id],
+        back_populates="source_flashcard",
     )

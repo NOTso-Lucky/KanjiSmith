@@ -27,13 +27,13 @@ Status: ✅ COMPLETE
 
 ### Phase 3 — Backend Business Logic
 
-* [ ] Deck CRUD
+* [x] Deck CRUD
+* [x] Deck ↔ Flashcard Operations
 * [ ] Flashcard CRUD
-* [ ] Deck ↔ Flashcard Operations
 * [ ] Review Engine
 * [ ] Dashboard Statistics
 
-Status: 🔄 NEXT
+Status: 🔄 IN PROGRESS
 
 ---
 

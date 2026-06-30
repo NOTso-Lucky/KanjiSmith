@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from app.db.database import Base,engine
 import app.models
-from app.routers import words, auth,users
+from app.routers import words, auth,users,deck
 from fastapi.middleware.cors import CORSMiddleware
 
 
@@ -23,6 +23,7 @@ app.add_middleware(
 app.include_router(words.router)
 app.include_router(auth.router)
 app.include_router(users.router)
+app.include_router(deck.router)
 
 @app.get("/")
 
