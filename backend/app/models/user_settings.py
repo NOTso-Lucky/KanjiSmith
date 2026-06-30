@@ -19,6 +19,11 @@ class UserSettings(Base, TimestampMixin):
         nullable=False,
     )
 
+    new_cards_per_day: Mapped[int] = mapped_column(
+        default=20,
+        nullable=False,
+    )
+
     user: Mapped["User"] = relationship(
         back_populates="settings",
     )

@@ -4,6 +4,8 @@ from app.schemas.auth import RegisterRequest
 from app.core.security import hash_password
 from sqlalchemy import select
 from fastapi import HTTPException
+from app.models.user_settings import UserSettings
+
 
 def get_user_by_id(db:Session,user_id:int):
     return db.get(User,user_id)
@@ -41,7 +43,8 @@ def create_user(db:Session,user:RegisterRequest):
     new_user = User(
         username=user.username,
         email=user.email,
-        password_hash=hash_password(user.password)
+        password_hash=hash_password(user.password),
+        settings=UserSettings(),
     )
     db.add(new_user)
     db.commit()
