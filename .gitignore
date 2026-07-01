@@ -1,20 +1,31 @@
-# Python
-venv/
-__pycache__/
-*.py[cod]
+# --- Secrets ---
+.env
+.env.*
+!.env.example
 
-# Environment
-backend/.env
+# --- Archives (don't zip up code/secrets and commit them) ---
+*.zip
+*.tar
+*.tar.gz
 
-# Database
+# --- Databases ---
 *.db
+*.sqlite
+*.sqlite3
 
-# Frontend
-frontend/node_modules/
-frontend/dist/
+# --- Python ---
+__pycache__/
+*.pyc
+venv/
+.venv/
+*.egg-info/
 
-# VS Code
+# --- Node / frontend ---
+node_modules/
+dist/
+build/
+
+# --- Editor / OS cruft ---
 .vscode/
-
-# Logs
-*.log
+.idea/
+.DS_Store
