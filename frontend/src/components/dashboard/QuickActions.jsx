@@ -1,13 +1,16 @@
 import { Search, Play, Plus, Upload } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const ACTIONS = [
-  { label: "Search Words", icon: Search },
-  { label: "Study Now", icon: Play },
-  { label: "Create Deck", icon: Plus },
-  { label: "Import Deck", icon: Upload },
+  { label: "Search Words", icon: Search, path: "/search" },
+  { label: "Study Now", icon: Play, path: "/review" },
+  { label: "Create Deck", icon: Plus, path: null },
+  { label: "Import Deck", icon: Upload, path: null },
 ];
 
 export default function QuickActions() {
+  const navigate = useNavigate();
+
   return (
     <section
       className="h-full space-y-4 rounded-2xl border p-6"
@@ -30,11 +33,13 @@ export default function QuickActions() {
       </div>
 
       <div className="grid grid-cols-2 gap-3">
-        {ACTIONS.map(({ label, icon: Icon }) => (
+        {ACTIONS.map(({ label, icon: Icon, path }) => (
           <button
             key={label}
             type="button"
-            className="flex flex-col items-start gap-2 rounded-xl border p-4 text-left transition hover:-translate-y-0.5"
+            disabled={!path}
+            onClick={() => path && navigate(path)}
+            className="flex flex-col items-start gap-2 rounded-xl border p-4 text-left transition hover:-translate-y-0.5 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0"
             style={{
               background: "var(--background)",
               borderColor: "var(--border)",

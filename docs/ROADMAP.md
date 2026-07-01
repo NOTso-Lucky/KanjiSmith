@@ -49,7 +49,7 @@ Status: 🔄 IN PROGRESS
 
 ### Phase 5 — Frontend
 
-* [ ] Dashboard
+* [x] Dashboard
 * [ ] Deck Management
 * [ ] Flashcard Editor
 * [ ] Review Interface
