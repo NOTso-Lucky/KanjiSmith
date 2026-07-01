@@ -53,12 +53,10 @@ export default function Review() {
     const responseTimeMs = Date.now() - cardStartRef.current;
     const currentCard = cards[index];
 
-    try {
-      await submitReview(currentCard.id, rating, responseTimeMs);
-    } catch (err) {
-      // Non-fatal — advance anyway so a network hiccup doesn't block the session
+    // Fire and forget — don't await, advance immediately
+    submitReview(currentCard.id, rating, responseTimeMs).catch((err) => {
       console.error("Failed to submit review:", err);
-    }
+    });
 
     const isCorrect = rating !== "Again";
     setReviewed((r) => r + 1);
@@ -72,7 +70,6 @@ export default function Review() {
       setSubmitting(false);
     }, 300);
   }
-
   const currentCard = cards[index];
   const isDone = !loading && !error && index >= cards.length;
   const sessionMinutes = Math.round((Date.now() - sessionStart) / 60000);

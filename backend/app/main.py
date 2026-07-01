@@ -1,9 +1,8 @@
 from fastapi import FastAPI
-from app.db.database import Base,engine
+from app.db.database import Base, engine
 import app.models
-from app.routers import words, auth,users, deck, flashcard, review
+from app.routers import words, auth, users, deck, flashcard, review, dashboard
 from fastapi.middleware.cors import CORSMiddleware
-
 
 app = FastAPI(
     title="KanjiSmith API",
@@ -26,10 +25,10 @@ app.include_router(users.router)
 app.include_router(deck.router)
 app.include_router(flashcard.router)
 app.include_router(review.router)
+app.include_router(dashboard.router)
 
 @app.get("/")
-
 def home():
     return {
-        "message":"Welcome to KanjiSmith"
+        "message": "Welcome to KanjiSmith"
     }

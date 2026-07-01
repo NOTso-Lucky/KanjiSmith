@@ -1,9 +1,12 @@
 import { Play } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import CircularProgress from "./CircularProgress";
 
-export default function TodayStudyCard() {
-  const reviewed = 18;
-  const goal = 30;
+export default function TodayStudyCard({ summary, loading }) {
+  const navigate = useNavigate();
+
+  const reviewed = summary?.today.reviews_completed ?? 0;
+  const goal = summary?.daily_goal ?? 20;
   const remaining = Math.max(0, goal - reviewed);
 
   return (
@@ -31,7 +34,7 @@ export default function TodayStudyCard() {
             className="mt-1 text-2xl font-semibold tracking-tight"
             style={{ color: "var(--foreground)" }}
           >
-            Goal: {goal} cards
+            {loading ? "Loading..." : `Goal: ${goal} cards`}
           </h3>
         </div>
 
@@ -43,11 +46,8 @@ export default function TodayStudyCard() {
             <p className="text-xs" style={{ color: "var(--muted-foreground)" }}>
               Reviewed
             </p>
-            <p
-              className="mt-1 text-2xl font-semibold"
-              style={{ color: "var(--foreground)" }}
-            >
-              {reviewed}
+            <p className="mt-1 text-2xl font-semibold" style={{ color: "var(--foreground)" }}>
+              {loading ? "—" : reviewed}
             </p>
           </div>
           <div
@@ -57,17 +57,15 @@ export default function TodayStudyCard() {
             <p className="text-xs" style={{ color: "var(--muted-foreground)" }}>
               Remaining
             </p>
-            <p
-              className="mt-1 text-2xl font-semibold"
-              style={{ color: "var(--foreground)" }}
-            >
-              {remaining}
+            <p className="mt-1 text-2xl font-semibold" style={{ color: "var(--foreground)" }}>
+              {loading ? "—" : remaining}
             </p>
           </div>
         </div>
 
         <button
           type="button"
+          onClick={() => navigate("/review")}
           className="inline-flex w-full items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-medium transition hover:opacity-90 sm:w-auto"
           style={{
             background: "var(--primary)",
@@ -75,7 +73,7 @@ export default function TodayStudyCard() {
           }}
         >
           <Play size={16} />
-          Start Studying
+          {remaining > 0 ? "Start Studying" : "All Done Today!"}
         </button>
       </div>
     </div>

@@ -20,7 +20,10 @@ export async function submitReview(flashcardId, rating, responseTimeMs = null) {
 
   return api(`/reviews/${flashcardId}`, {
     method: "POST",
-    headers: authHeader(),
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+      "Content-Type": "application/json",
+    },
     body: JSON.stringify(body),
   });
 }
