@@ -60,6 +60,35 @@ def add_flashcard_to_deck(
     return entry
 
 
+def bulk_add_flashcards(
+    db: Session,
+    deck_id: int,
+    flashcard_ids: list[int],
+) -> list[DeckFlashcard]:
+    """
+    Inserts many DeckFlashcard rows for a deck in one commit, preserving
+    the given order as position 1..N. Used when cloning an official deck,
+    where we're copying an existing, already-ordered set of flashcard ids.
+    """
+
+    entries = [
+        DeckFlashcard(
+            deck_id=deck_id,
+            flashcard_id=flashcard_id,
+            position=index + 1,
+        )
+        for index, flashcard_id in enumerate(flashcard_ids)
+    ]
+
+    db.add_all(entries)
+    db.commit()
+
+    for entry in entries:
+        db.refresh(entry)
+
+    return entries
+
+
 def remove_flashcard_from_deck(
     db: Session,
     entry: DeckFlashcard,

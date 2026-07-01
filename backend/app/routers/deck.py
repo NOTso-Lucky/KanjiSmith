@@ -1,4 +1,3 @@
-
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
@@ -29,6 +28,14 @@ def list_decks(
     return deck_service.list_decks(db, current_user)
 
 
+@router.get("/official", response_model=list[DeckResponse])
+def list_official_decks(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return deck_service.list_official_decks(db)
+
+
 @router.post("", response_model=DeckResponse, status_code=status.HTTP_201_CREATED)
 def create_deck(
     payload: DeckCreate,
@@ -36,6 +43,15 @@ def create_deck(
     current_user: User = Depends(get_current_user),
 ):
     return deck_service.create_deck(db, payload, current_user)
+
+
+@router.post("/{deck_id}/clone", response_model=DeckResponse, status_code=status.HTTP_201_CREATED)
+def clone_deck(
+    deck_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return deck_service.clone_deck(db, deck_id, current_user)
 
 
 @router.get("/{deck_id}", response_model=DeckResponse)
@@ -126,5 +142,3 @@ def remove_flashcard_from_deck(
     current_user: User = Depends(get_current_user),
 ):
     deck_service.remove_flashcard_from_deck(db, deck_id, flashcard_id, current_user)
-
-

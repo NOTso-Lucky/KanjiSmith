@@ -34,10 +34,20 @@ def list_decks_for_user(
 
     return (
         db.query(Deck)
-        .filter(
-            (Deck.owner_id == user_id) | (Deck.owner_id.is_(None)),
-        )
+        .filter(Deck.owner_id == user_id)
         .order_by(Deck.created_at.desc())
+        .all()
+    )
+
+
+def list_official_decks(
+    db: Session,
+) -> list[Deck]:
+
+    return (
+        db.query(Deck)
+        .filter(Deck.owner_id.is_(None))
+        .order_by(Deck.created_at.asc())
         .all()
     )
 

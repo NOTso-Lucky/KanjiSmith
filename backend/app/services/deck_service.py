@@ -34,6 +34,10 @@ def list_decks(db: Session, user: User) -> list[Deck]:
     return crud_deck.list_decks_for_user(db, user.id)
 
 
+def list_official_decks(db: Session) -> list[Deck]:
+    return crud_deck.list_official_decks(db)
+
+
 def get_deck(db: Session, deck_id: int, user: User) -> Deck:
     deck = crud_deck.get_deck_by_id(db, deck_id)
 
@@ -274,3 +278,53 @@ def fork_flashcard_for_edit(
     db.refresh(forked)
 
     return forked
+
+
+def clone_deck(
+    db: Session,
+    deck_id: int,
+    user: User,
+) -> Deck:
+    """
+    Clones an official deck into the user's own decks: a new Deck row
+    owned by the user, plus DeckFlashcard rows pointing at the same
+    flashcard ids as the original (no flashcard duplication — the
+    flashcard content stays shared, only the deck "shell" and its
+    membership links are copied), preserving original ordering.
+    """
+
+    source_deck = crud_deck.get_deck_by_id(db, deck_id)
+
+    if source_deck is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Deck not found",
+        )
+
+    if source_deck.owner_id is not None:
+        raise HTTPException(
+            status_code=400,
+            detail="Only official decks can be added this way",
+        )
+
+    if crud_deck.get_owned_by_title(db, user.id, source_deck.title):
+        raise HTTPException(
+            status_code=409,
+            detail="You already have this deck in My Decks",
+        )
+
+    new_deck = Deck(
+        owner_id=user.id,
+        title=source_deck.title,
+        description=source_deck.description,
+    )
+
+    new_deck = crud_deck.create_deck(db, new_deck)
+
+    entries = crud_deck_flashcard.list_flashcards_in_deck(db, source_deck.id)
+    flashcard_ids = [entry.flashcard_id for entry in entries]
+
+    if flashcard_ids:
+        crud_deck_flashcard.bulk_add_flashcards(db, new_deck.id, flashcard_ids)
+
+    return new_deck
