@@ -144,6 +144,8 @@ def update_flashcard_in_deck(
     flashcard_id: int,
     updates: dict,
     user: User,
+    mode: str = "replace",
+    target_deck_id: int | None = None,
 ) -> Flashcard:
     deck = _ensure_owned(crud_deck.get_deck_by_id(db, deck_id), user)
 
@@ -168,13 +170,42 @@ def update_flashcard_in_deck(
     result = fork_flashcard_for_edit(db, flashcard, user, updates)
 
     if not was_owned:
-        # A new fork was created — repoint only this deck's entry to it,
-        # keep its position, and leave every other deck reference alone.
-        entry.flashcard_id = result.id
-        db.commit()
-        db.refresh(entry)
-
         crud_user_flashcard.get_or_create_entry(db, user.id, result.id)
+
+        if mode == "replace":
+            entry.flashcard_id = result.id
+            db.commit()
+            db.refresh(entry)
+
+        elif mode == "add_to_deck":
+            position = crud_deck_flashcard.get_next_position(db, deck.id)
+            new_entry = DeckFlashcard(
+                deck_id=deck.id,
+                flashcard_id=result.id,
+                position=position,
+            )
+            crud_deck_flashcard.add_flashcard_to_deck(db, new_entry)
+
+        elif mode == "add_to_other_deck":
+            if target_deck_id is None:
+                raise HTTPException(
+                    status_code=400,
+                    detail="target_deck_id is required for this mode",
+                )
+
+            target_deck = _ensure_owned(
+                crud_deck.get_deck_by_id(db, target_deck_id), user
+            )
+
+            existing = crud_deck_flashcard.get_entry(db, target_deck.id, result.id)
+            if existing is None:
+                position = crud_deck_flashcard.get_next_position(db, target_deck.id)
+                new_entry = DeckFlashcard(
+                    deck_id=target_deck.id,
+                    flashcard_id=result.id,
+                    position=position,
+                )
+                crud_deck_flashcard.add_flashcard_to_deck(db, new_entry)
 
     return result
 

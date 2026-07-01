@@ -35,3 +35,9 @@ export async function getDueCount(deckId = null) {
     headers: authHeader(),
   });
 }
+export async function getReviewHistory(limit = 5) {
+  return api(`/reviews/history?limit=${limit}`, {
+    method: "GET",
+    headers: authHeader(),
+  });
+}

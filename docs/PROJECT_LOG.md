@@ -1,5 +1,37 @@
 # KanjiSmith - PROJECT_LOG.md
 
+## 2026-07-01 — Flashcard Editing (fork-on-edit)
+
+Added the ability to edit a flashcard from inside a deck, with fork-on-edit
+so official cards are never mutated directly.
+
+Backend:
+- crud_flashcard.py: removed dead standalone edit/delete-by-id functions,
+  added get_readable_by_id (official OR owned) for read-only fetch.
+- routers/flashcard.py: added GET /flashcards/{id}.
+- schemas/flashcard.py: added FlashcardEditRequest (updates, mode,
+  target_deck_id).
+- deck_service.py: update_flashcard_in_deck now forks on edit for
+  non-owned cards, then branches on mode — replace / add_to_deck /
+  add_to_other_deck. Owned cards still just update in place.
+- routers/deck.py: PATCH /decks/{deckId}/flashcards/{flashcardId} passes
+  mode/target_deck_id through.
+
+Frontend:
+- services/flashcard.js (new): getFlashcard.
+- services/deck.js: added updateFlashcardInDeck.
+- components/AddToDeckMenu.jsx: added hideTrigger/forceOpen so the
+  existing deck-picker can be reused inside the editor without a
+  duplicate trigger button.
+- pages/FlashcardEditor.jsx (new): loads card, single Save for owned
+  cards, three-way fork choice (Replace / Keep both / Add to another
+  deck) for non-owned cards.
+- App.jsx: added route /decks/:deckId/flashcards/:flashcardId/edit.
+- DeckDetail.jsx: added per-card Edit button next to Remove.
+
+No global PATCH/DELETE /flashcards/{id} — all mutation stays deck-scoped
+by design, single source of truth for fork-on-edit.
+
 ## 2026-07-01 — Settings (Backend + Frontend)
 
 ### Backend

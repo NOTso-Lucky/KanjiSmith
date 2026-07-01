@@ -61,3 +61,14 @@ export async function removeFlashcardFromDeck(deckId, flashcardId) {
     headers: authHeader(),
   });
 }
+
+export async function updateFlashcardInDeck(deckId, flashcardId, updates, mode = "replace", targetDeckId = null) {
+  const body = { updates, mode };
+  if (targetDeckId !== null) body.target_deck_id = targetDeckId;
+
+  return api(`/decks/${deckId}/flashcards/${flashcardId}`, {
+    method: "PATCH",
+    headers: authHeader(),
+    body: JSON.stringify(body),
+  });
+}

@@ -1,7 +1,6 @@
 from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field
-
 from app.models.enums import ReviewRating
 from app.schemas.flashcard import FlashcardResponse
 
@@ -37,3 +36,14 @@ class QueueResponse(BaseModel):
 class DueCountResponse(BaseModel):
     due_reviews: int
     new_cards: int
+
+
+
+
+class RecentReviewResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    flashcard_id: int
+    rating: ReviewRating
+    reviewed_at: datetime
+    flashcard: FlashcardResponse

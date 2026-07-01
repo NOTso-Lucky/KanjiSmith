@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { Plus, ChevronDown, Check, Loader2 } from "lucide-react";
 import { listDecks, addFlashcardToDeck } from "../services/deck";
 
-export default function AddToDeckMenu({ flashcardId }) {
-  const [open, setOpen] = useState(false);
+export default function AddToDeckMenu({ flashcardId, onSelect, hideTrigger = false, forceOpen = false }) {
+  const [open, setOpen] = useState(forceOpen);
   const [decks, setDecks] = useState(null);
   const [loadingDecks, setLoadingDecks] = useState(false);
   const [error, setError] = useState(null);
@@ -20,6 +20,16 @@ export default function AddToDeckMenu({ flashcardId }) {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (forceOpen && decks === null) {
+      setLoadingDecks(true);
+      listDecks()
+        .then((data) => setDecks(Array.isArray(data) ? data : []))
+        .catch((err) => setError(err.message || "Couldn't load decks"))
+        .finally(() => setLoadingDecks(false));
+    }
+  }, [forceOpen]);
 
   async function handleOpen() {
     const next = !open;
@@ -45,7 +55,11 @@ export default function AddToDeckMenu({ flashcardId }) {
     setError(null);
 
     try {
-      await addFlashcardToDeck(deckId, flashcardId);
+      if (onSelect) {
+        await onSelect(deckId);
+      } else {
+        await addFlashcardToDeck(deckId, flashcardId);
+      }
       setAddedIds((prev) => new Set(prev).add(deckId));
     } catch (err) {
       if (err.message?.toLowerCase().includes("already")) {
@@ -60,22 +74,24 @@ export default function AddToDeckMenu({ flashcardId }) {
 
   return (
     <div ref={containerRef} className="relative">
-      <button
-        type="button"
-        onClick={handleOpen}
-        className="flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-sm font-medium transition hover:-translate-y-0.5"
-        style={{
-          background: "var(--background)",
-          borderColor: "var(--border)",
-          color: "var(--foreground)",
-        }}
-      >
-        <Plus size={14} />
-        Add to Deck
-        <ChevronDown size={14} />
-      </button>
+      {!hideTrigger && (
+        <button
+          type="button"
+          onClick={handleOpen}
+          className="flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-sm font-medium transition hover:-translate-y-0.5"
+          style={{
+            background: "var(--background)",
+            borderColor: "var(--border)",
+            color: "var(--foreground)",
+          }}
+        >
+          <Plus size={14} />
+          Add to Deck
+          <ChevronDown size={14} />
+        </button>
+      )}
 
-      {open && (
+      {(open || forceOpen) && (
         <div
           className="absolute right-0 z-10 mt-2 w-56 rounded-xl border p-2"
           style={{

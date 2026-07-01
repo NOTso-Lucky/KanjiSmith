@@ -9,6 +9,8 @@ import NotFound from "./pages/NotFound";
 import Decks from "./pages/Decks";
 import DeckDetail from "./pages/DeckDetail";
 import Settings from "./pages/Settings";
+import FlashcardEditor from "./pages/FlashcardEditor";
+
 
 function App() {
   return (
@@ -63,6 +65,14 @@ function App() {
   element={
     <ProtectedRoute>
       <Settings />
+    </ProtectedRoute>
+  }
+/>
+    <Route
+  path="/decks/:deckId/flashcards/:flashcardId/edit"
+  element={
+    <ProtectedRoute>
+      <FlashcardEditor />
     </ProtectedRoute>
   }
 />

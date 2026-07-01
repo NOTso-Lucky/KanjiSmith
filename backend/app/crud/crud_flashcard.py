@@ -60,3 +60,14 @@ def create_flashcard(
     db.refresh(flashcard)
 
     return flashcard
+
+def get_readable_by_id(db: Session, flashcard_id: int, user_id: int) -> Flashcard | None:
+    """A flashcard the user is allowed to view: official, or their own."""
+    return (
+        db.query(Flashcard)
+        .filter(
+            Flashcard.id == flashcard_id,
+            (Flashcard.owner_id.is_(None)) | (Flashcard.owner_id == user_id),
+        )
+        .first()
+    )

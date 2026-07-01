@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
-  ArrowLeft, BookOpen, Play, Trash2, Loader2, Search
+  ArrowLeft, BookOpen, Play, Trash2, Loader2, Search, Pencil
 } from "lucide-react";
 import MainLayout from "../layouts/MainLayout";
 import { getDeckFlashcards, removeFlashcardFromDeck } from "../services/deck";
@@ -256,7 +256,18 @@ export default function DeckDetail() {
                       {f.jlpt_level}
                     </span>
                   )}
-
+                    {/* Edit button */}
+                    <button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/decks/${deckId}/flashcards/${entry.flashcard_id}/edit`);
+                    }}
+                    className="ml-2 shrink-0 grid h-7 w-7 place-items-center rounded-full opacity-0 transition group-hover:opacity-100 hover:bg-black/5 dark:hover:bg-white/10"
+                    style={{ color: "var(--muted-foreground)" }}
+                    aria-label="Edit card"
+                    >
+                    <Pencil size={14} />
+                    </button>
                   {/* Remove button */}
                   <button
                     onClick={(e) => handleRemove(e, entry.flashcard_id)}

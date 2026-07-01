@@ -1,6 +1,6 @@
 from pydantic import ConfigDict
 from pydantic import BaseModel, Field
-
+from typing import Literal
 from app.models.enums import CardType, JLPTLevel
 
 
@@ -53,3 +53,11 @@ class FlashcardUpdate(BaseModel):
 
     jlpt_level: JLPTLevel | None = None
     card_type: CardType | None = None
+
+
+
+
+class FlashcardEditRequest(BaseModel):
+    updates: FlashcardUpdate
+    mode: Literal["replace", "add_to_deck", "add_to_other_deck"] = "replace"
+    target_deck_id: int | None = None

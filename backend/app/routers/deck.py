@@ -1,3 +1,4 @@
+
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
@@ -11,7 +12,7 @@ from app.schemas.deck import (
     DeckResponse,
     DeckUpdate,
 )
-from app.schemas.flashcard import FlashcardResponse, FlashcardUpdate
+from app.schemas.flashcard import FlashcardEditRequest, FlashcardResponse
 from app.services import deck_service
 
 router = APIRouter(
@@ -99,11 +100,11 @@ def add_flashcard_to_deck(
 def update_flashcard_in_deck(
     deck_id: int,
     flashcard_id: int,
-    payload: FlashcardUpdate,
+    payload: FlashcardEditRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    updates = payload.model_dump(exclude_unset=True)
+    updates = payload.updates.model_dump(exclude_unset=True)
 
     return deck_service.update_flashcard_in_deck(
         db,
@@ -111,8 +112,9 @@ def update_flashcard_in_deck(
         flashcard_id,
         updates,
         current_user,
+        mode=payload.mode,
+        target_deck_id=payload.target_deck_id,
     )
-
 @router.delete(
     "/{deck_id}/flashcards/{flashcard_id}",
     status_code=status.HTTP_204_NO_CONTENT,
@@ -124,3 +126,5 @@ def remove_flashcard_from_deck(
     current_user: User = Depends(get_current_user),
 ):
     deck_service.remove_flashcard_from_deck(db, deck_id, flashcard_id, current_user)
+
+

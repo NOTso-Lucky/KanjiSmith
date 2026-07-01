@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
-
+from app.crud import crud_review_history
+from app.schemas.review import RecentReviewResponse
 from app.core.auth import get_current_user
 from app.db.database import get_db
 from app.models.user import User
@@ -57,3 +58,14 @@ def submit_review(
     )
 
     return ReviewResult(flashcard_id=flashcard_id, state=entry)
+
+
+
+
+@router.get("/history", response_model=list[RecentReviewResponse])
+def get_review_history(
+    limit: int = Query(default=5, ge=1, le=20),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return crud_review_history.get_recent_for_user(db, current_user.id, limit)
