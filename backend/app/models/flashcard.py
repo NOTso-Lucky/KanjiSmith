@@ -42,12 +42,22 @@ class Flashcard(Base, TimestampMixin):
         nullable=False,
     )
 
+    reading_romaji: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+    )
+
     meaning: Mapped[str] = mapped_column(
         Text,
         nullable=False,
     )
 
     example_sentence: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+    )
+
+    example_romaji: Mapped[str | None] = mapped_column(
         Text,
         nullable=True,
     )

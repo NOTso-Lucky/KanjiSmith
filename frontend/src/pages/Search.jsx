@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Search as SearchIcon, AlertCircle } from "lucide-react";
 import MainLayout from "../layouts/MainLayout";
 import SearchBar from "../components/SearchBar";
@@ -8,6 +9,7 @@ import { searchWord } from "../services/search";
 const SUGGESTIONS = ["猫", "勉強", "新聞", "食べる"];
 
 export default function Search() {
+  const [searchParams] = useSearchParams();
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -28,6 +30,11 @@ export default function Search() {
       setLoading(false);
     }
   }
+
+  useEffect(() => {
+    const q = searchParams.get("q");
+    if (q) handleSearch(q);
+  }, []);
 
   return (
     <MainLayout>
@@ -107,7 +114,7 @@ export default function Search() {
 
         {!loading && !error && result && <Flashcard card={result} />}
 
-        {!loading && !error && !result && (
+        {!loading && !error && !result && !lastQuery && (
           <div className="flex flex-col items-center gap-2 py-10 text-center">
             <SearchIcon size={28} style={{ color: "var(--muted-foreground)" }} />
             <p style={{ color: "var(--muted-foreground)" }}>

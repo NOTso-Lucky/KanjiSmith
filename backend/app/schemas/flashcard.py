@@ -13,9 +13,11 @@ class FlashcardResponse(BaseModel):
 
     expression: str
     reading: str
+    reading_romaji: str | None
     meaning: str
 
     example_sentence: str | None
+    example_romaji: str | None
     example_translation: str | None
     notes: str | None
 
@@ -26,9 +28,11 @@ class FlashcardResponse(BaseModel):
 class FlashcardCreate(BaseModel):
     expression: str = Field(min_length=1, max_length=255)
     reading: str = Field(min_length=1, max_length=255)
+    reading_romaji: str | None = None
     meaning: str = Field(min_length=1)
 
     example_sentence: str | None = None
+    example_romaji: str | None = None
     example_translation: str | None = None
     notes: str | None = None
 
@@ -39,9 +43,11 @@ class FlashcardCreate(BaseModel):
 class FlashcardUpdate(BaseModel):
     expression: str | None = Field(default=None, min_length=1, max_length=255)
     reading: str | None = Field(default=None, min_length=1, max_length=255)
+    reading_romaji: str | None = None
     meaning: str | None = Field(default=None, min_length=1)
 
     example_sentence: str | None = None
+    example_romaji: str | None = None
     example_translation: str | None = None
     notes: str | None = None
 
