@@ -6,8 +6,9 @@ import Dashboard from "./pages/Dashboard";
 import Search from "./pages/Search";
 import Review from "./pages/Review";
 import NotFound from "./pages/NotFound";
-
-
+import Decks from "./pages/Decks";
+import DeckDetail from "./pages/DeckDetail";
+import Settings from "./pages/Settings";
 
 function App() {
   return (
@@ -41,6 +42,30 @@ function App() {
     </ProtectedRoute>
     }
     />
+    <Route
+    path="/decks"
+    element={
+    <ProtectedRoute>
+      <Decks />
+    </ProtectedRoute>
+    }
+    />
+    <Route
+    path="/decks/:deckId"
+    element={
+      <ProtectedRoute>
+        <DeckDetail />
+      </ProtectedRoute>
+    }
+  />
+    <Route
+  path="/settings"
+  element={
+    <ProtectedRoute>
+      <Settings />
+    </ProtectedRoute>
+  }
+/>
     <Route path="*" element={<NotFound />} />
     </Routes>
   );

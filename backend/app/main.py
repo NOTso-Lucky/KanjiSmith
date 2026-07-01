@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from app.db.database import Base, engine
 import app.models
-from app.routers import words, auth, users, deck, flashcard, review, dashboard
+from app.routers import words, auth, users, deck, flashcard, review, dashboard, settings
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(
@@ -26,6 +26,8 @@ app.include_router(deck.router)
 app.include_router(flashcard.router)
 app.include_router(review.router)
 app.include_router(dashboard.router)
+app.include_router(settings.router)
+
 
 @app.get("/")
 def home():

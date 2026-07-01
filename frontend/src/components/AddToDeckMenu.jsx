@@ -30,7 +30,8 @@ export default function AddToDeckMenu({ flashcardId }) {
       setLoadingDecks(true);
       try {
         const data = await listDecks();
-        setDecks(data);
+        // listDecks returns an array of DeckResponse objects
+        setDecks(Array.isArray(data) ? data : []);
       } catch (err) {
         setError(err.message || "Couldn't load decks");
       } finally {
@@ -47,7 +48,6 @@ export default function AddToDeckMenu({ flashcardId }) {
       await addFlashcardToDeck(deckId, flashcardId);
       setAddedIds((prev) => new Set(prev).add(deckId));
     } catch (err) {
-      // Already in this deck is fine — treat it as success, not an error.
       if (err.message?.toLowerCase().includes("already")) {
         setAddedIds((prev) => new Set(prev).add(deckId));
       } else {
@@ -112,12 +112,10 @@ export default function AddToDeckMenu({ flashcardId }) {
                   disabled={adding || added}
                   onClick={() => handleAdd(deck.id)}
                   className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition disabled:opacity-70"
-                  style={{
-                    color: "var(--foreground)",
-                    background: "transparent",
-                  }}
+                  style={{ color: "var(--foreground)", background: "transparent" }}
                   onMouseEnter={(e) => {
-                    if (!adding && !added) e.currentTarget.style.background = "var(--surface-hover)";
+                    if (!adding && !added)
+                      e.currentTarget.style.background = "var(--surface-hover)";
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.background = "transparent";

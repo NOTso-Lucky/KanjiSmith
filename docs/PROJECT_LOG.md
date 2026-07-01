@@ -1,5 +1,129 @@
 # KanjiSmith - PROJECT_LOG.md
 
+## 2026-07-01 — Settings (Backend + Frontend)
+
+### Backend
+
+* `app/schemas/user_settings.py` (new) — `UserSettingsResponse` and `UserSettingsUpdate` with validation (1–500 range on both fields).
+* `app/schemas/user.py` — added `UserUpdate` (username, email, requires `current_password`) and `PasswordUpdate` (current + new password, min 8 chars).
+* `app/crud/crud_user_settings.py` — added `update_for_user()`: reuses `get_or_create_for_user` as safety net, iterates over update dict and only sets provided fields (PATCH semantics).
+* `app/services/users.py` — added `update_user()` (verifies current password, checks username/email uniqueness before updating) and `update_password()` (verifies current password, rejects same-as-current new password, hashes and stores new one).
+* `app/routers/settings.py` (new) — four endpoints:
+  * `GET /settings` — fetch study preferences
+  * `PATCH /settings` — update daily_goal and/or new_cards_per_day
+  * `PATCH /settings/account` — update username/email (current password required)
+  * `PATCH /settings/password` — change password (current + new password required)
+* `app/main.py` — registered settings router.
+
+### Frontend
+
+* `src/services/settings.js` (new) — `getSettings()`, `updateStudySettings()`, `updateAccount()`, `updatePassword()`.
+* `src/pages/Settings.jsx` (new) — three independent sections, each with their own form, save state, and error handling:
+  * Study Preferences — daily goal + new cards per day, pre-filled from `GET /settings` on mount.
+  * Account — username + email, current password required, updates `AuthContext` user on success so navbar avatar initial reflects changes immediately.
+  * Change Password — current + new + confirm, mismatch caught client-side before API call, "Saved!" checkmark auto-resets after 2.5s.
+* `src/App.jsx` — added `/settings` protected route.
+
+### Testing
+
+* Study preferences: changed daily goal to 30, refreshed — pre-filled correctly.
+* Account: changed username with correct password — navbar avatar updated immediately.
+* Password: changed password, logged out, logged back in with new password — confirmed working.
+
+### Current Status
+
+* Authentication completed.
+* Deck management completed.
+* Flashcard CRUD completed.
+* Review Engine (SRS) completed.
+* Dashboard Statistics completed.
+* Search frontend completed.
+* Review session frontend completed.
+* Dashboard wired to real API data.
+* Decks page + Deck detail completed.
+* Settings (study preferences + account + password) completed.
+
+### Next Milestone
+
+* `GET /review-history` backend endpoint + wire Recent Flashcards dashboard component.
+
+## 2026-07-01 — Review Frontend + Dashboard Wiring + UI Polish
+
+### Review Session Page (`/review`)
+
+* `src/pages/Review.jsx` — full SRS review session, fully wired to the backend.
+  * Fetches card queue from `GET /reviews/queue` on mount, supports `?deck_id=` param so "Study this deck" links work from any deck-scoped entry point.
+  * Per-card flip animation: front shows expression + reading, back reveals meaning, romaji, and example sentence block. Click anywhere on the card to flip.
+  * Four rating buttons (Again / Hard / Good / Easy) appear only after the card is flipped — enforcing the "think first, then rate" SRS flow.
+  * Reviews fire-and-forget (`submitReview` not awaited) so the session advances immediately without waiting on the network — failed submissions are logged to console but don't interrupt the user.
+  * Per-card response time tracked via `cardStartRef` and sent as `response_time_ms` on each submission.
+  * Session stats (reviewed count, correct count, elapsed time) accumulated client-side and shown on the completion screen.
+  * Four distinct states handled cleanly: loading, error, empty queue ("all caught up"), active session, and completion screen with accuracy % and session time.
+  * "Study Again" on the completion screen re-fetches the queue (picks up any relearning cards that are now due after the 10-min relearning step).
+
+* `src/components/ReviewCard.jsx` — 3D flip card with `rotateY` CSS transform, `backface-visibility: hidden` on both faces. Front shows large kanji + reading; back shows full detail (meaning, reading romaji, example sentence with romaji + translation). Renders `reading_romaji` and `example_romaji` from the new backend fields when present.
+
+* `src/components/ReviewButtons.jsx` — four fixed-color rating buttons (red/orange/green/blue) with interval hint sublabels (`<10m`, `<1d`, `+1d`, `+4d`). Disabled during submission to prevent double-submissions.
+
+* `src/services/review.js` — `getQueue(deckId, limit)`, `submitReview(flashcardId, rating, responseTimeMs)`, `getDueCount(deckId)`.
+
+### Dashboard Wiring
+
+* `src/components/dashboard/StatsGrid.jsx` — wired to real API data. Fetches `GET /dashboard/summary`, `GET /dashboard/decks`, and `GET /reviews/due-count` in parallel. Shows: Cards Due Today (due_reviews + new_cards), Learned Today, Decks, Activity Streak. Loading skeletons while fetching, `—` on error.
+* `src/components/dashboard/TodayStudyCard.jsx` — wired to `GET /dashboard/summary`. Shows reviewed vs goal with circular progress, Reviewed/Remaining mini-cards, and a "Start Studying" / "Continue Studying" button navigating to `/review`.
+* `src/components/dashboard/MyDecks.jsx` — wired to `GET /dashboard/decks`. Loading skeleton (2 placeholder cards), empty state with prompt to create first deck, maps real deck data to `DeckCard` components.
+* `src/services/dashboard.js` — `getSummary()`, `getDecks()`, `getDueCount()`.
+
+### UI Polish
+
+* `src/components/Navbar.jsx` — added search icon button (authenticated only) navigating to `/search`, logo link goes to `/dashboard` when logged in, `/` when not.
+* `src/components/UserMenu.jsx` — avatar dropdown with user info (username + email), Settings and Profile menu items, Logout at bottom. Closes on outside click via `useRef` + `mousedown` listener.
+* `src/pages/Dashboard.jsx` — wrapped in `MainLayout` (was missing, so Navbar wasn't showing on dashboard), restructured layout to match reference design: WelcomeHeader → StatsGrid → TodayStudyCard + RecentActivity (side-by-side) → RecentFlashcards → MyDecks. Removed SearchHero and QuickActions from the main layout.
+* `src/components/common/` — added `Button.jsx`, `Card.jsx`, `Input.jsx` as reusable primitive components.
+
+### Known Issues / Deferred
+
+* `RecentFlashcards` dashboard component still uses fake data — needs a `GET /review-history` endpoint on the backend before it can be wired.
+* `study_time_minutes` float precision issue in `crud_daily_progress.py` — deferred from previous milestone.
+* Search ranking favors katakana loanwords — deferred from previous milestone.
+
+### Files Added
+
+* `frontend/src/pages/Review.jsx`
+* `frontend/src/components/ReviewCard.jsx`
+* `frontend/src/components/ReviewButtons.jsx`
+* `frontend/src/components/UserMenu.jsx`
+* `frontend/src/components/common/Button.jsx`
+* `frontend/src/components/common/Card.jsx`
+* `frontend/src/components/common/Input.jsx`
+* `frontend/src/services/review.js`
+
+### Files Updated
+
+* `frontend/src/pages/Dashboard.jsx` — MainLayout wrap + layout restructure
+* `frontend/src/components/dashboard/StatsGrid.jsx` — real API data
+* `frontend/src/components/dashboard/TodayStudyCard.jsx` — real API data
+* `frontend/src/components/dashboard/MyDecks.jsx` — real API data
+* `frontend/src/services/dashboard.js` — added getDueCount
+* `frontend/src/components/Navbar.jsx` — search icon + auth-aware logo link
+* `frontend/src/App.jsx` — added `/search` and `/review` protected routes
+
+### Current Status
+
+* Authentication completed.
+* Deck management completed.
+* Flashcard CRUD completed.
+* Review Engine (SRS) completed.
+* Dashboard Statistics completed.
+* Search frontend completed.
+* Review session frontend completed.
+* Dashboard wired to real API data.
+
+### Next Milestone
+
+* Decks page (`/decks`) — list, create, delete decks
+* Deck detail page (`/decks/:id`) — view cards, remove cards, "Study this deck" button
+
 ## 2026-07-01 — Search Frontend + Romaji Pipeline + Auth Fixes
 
 ### Romaji Storage (Backend)

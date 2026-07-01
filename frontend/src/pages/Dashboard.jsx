@@ -1,13 +1,12 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
+import MainLayout from "../layouts/MainLayout";
 import WelcomeHeader from "../components/dashboard/WelcomeHeader";
-import SearchHero from "../components/dashboard/SearchHero";
 import StatsGrid from "../components/dashboard/StatsGrid";
 import TodayStudyCard from "../components/dashboard/TodayStudyCard";
 import RecentFlashcards from "../components/dashboard/RecentFlashcards";
 import MyDecks from "../components/dashboard/MyDecks";
 import RecentActivity from "../components/dashboard/RecentActivity";
-import QuickActions from "../components/dashboard/QuickActions";
 import { useAuth } from "../contexts/AuthContext";
 import { getSummary, getDueCount } from "../services/dashboard";
 
@@ -35,15 +34,14 @@ export default function Dashboard() {
         setLoading(false);
       }
     }
-
     fetchDashboardData();
   }, [location.key]);
 
   return (
-    <section className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
+    <MainLayout>
       <div className="space-y-8 lg:space-y-10">
         <WelcomeHeader user={user} />
-        <SearchHero />
+
         <StatsGrid summary={summary} dueCount={dueCount} loading={loading} />
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -51,21 +49,14 @@ export default function Dashboard() {
             <TodayStudyCard summary={summary} loading={loading} />
           </div>
           <div>
-            <QuickActions />
+            <RecentActivity />
           </div>
         </div>
 
         <RecentFlashcards />
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <div className="lg:col-span-2">
-            <MyDecks />
-          </div>
-          <div>
-            <RecentActivity />
-          </div>
-        </div>
+        <MyDecks />
       </div>
-    </section>
+    </MainLayout>
   );
 }

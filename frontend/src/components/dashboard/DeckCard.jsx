@@ -1,7 +1,9 @@
 import { Play } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
-export default function DeckCard({ name, icon: Icon, progress, total, learned }) {
-  const pct = Math.round((learned / total) * 100);
+export default function DeckCard({ name, icon: Icon, total, learned, deckId }) {
+  const navigate = useNavigate();
+  const pct = total > 0 ? Math.round((learned / total) * 100) : 0;
 
   return (
     <div
@@ -26,10 +28,7 @@ export default function DeckCard({ name, icon: Icon, progress, total, learned })
           >
             {name}
           </p>
-          <p
-            className="text-xs"
-            style={{ color: "var(--muted-foreground)" }}
-          >
+          <p className="text-xs" style={{ color: "var(--muted-foreground)" }}>
             {total} cards · {learned} learned
           </p>
         </div>
@@ -53,6 +52,7 @@ export default function DeckCard({ name, icon: Icon, progress, total, learned })
 
       <button
         type="button"
+        onClick={() => deckId ? navigate(`/review?deck_id=${deckId}`) : navigate("/review")}
         className="inline-flex items-center justify-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition hover:-translate-y-0.5"
         style={{
           background: "var(--background)",
