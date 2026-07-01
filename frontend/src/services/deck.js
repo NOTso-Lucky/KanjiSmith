@@ -11,6 +11,20 @@ export async function listDecks() {
   });
 }
 
+export async function listOfficialDecks() {
+  return api("/decks/official", {
+    method: "GET",
+    headers: authHeader(),
+  });
+}
+
+export async function cloneDeck(deckId) {
+  return api(`/decks/${deckId}/clone`, {
+    method: "POST",
+    headers: authHeader(),
+  });
+}
+
 export async function createDeck(title, description = null) {
   const body = { title };
   if (description) body.description = description;

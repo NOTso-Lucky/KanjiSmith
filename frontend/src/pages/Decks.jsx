@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, BookOpen, Trash2, Loader2, X } from "lucide-react";
+import { Plus, BookOpen, Trash2, Loader2, X, Sparkles } from "lucide-react";
 import MainLayout from "../layouts/MainLayout";
 import { listDecks, createDeck, deleteDeck } from "../services/deck";
 
@@ -203,17 +203,32 @@ export default function Decks() {
             </p>
           </div>
 
-          <button
-            onClick={() => setShowModal(true)}
-            className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition hover:opacity-90"
-            style={{
-              background: "var(--primary)",
-              color: "var(--primary-foreground, #fff)",
-            }}
-          >
-            <Plus size={16} />
-            New Deck
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate("/decks/official")}
+              className="inline-flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-medium transition hover:opacity-80"
+              style={{
+                background: "var(--surface)",
+                borderColor: "var(--border)",
+                color: "var(--foreground)",
+              }}
+            >
+              <Sparkles size={16} />
+              Browse Official Decks
+            </button>
+
+            <button
+              onClick={() => setShowModal(true)}
+              className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition hover:opacity-90"
+              style={{
+                background: "var(--primary)",
+                color: "var(--primary-foreground, #fff)",
+              }}
+            >
+              <Plus size={16} />
+              New Deck
+            </button>
+          </div>
         </div>
 
         {/* Loading */}
@@ -245,7 +260,7 @@ export default function Decks() {
               No decks yet
             </p>
             <p className="text-sm" style={{ color: "var(--muted-foreground)" }}>
-              Create your first deck to start learning.
+              Create your first deck, or browse official decks to get started faster.
             </p>
           </div>
         )}
@@ -290,29 +305,20 @@ export default function Decks() {
                   )}
                 </div>
 
-                <div
-                  className="text-xs"
-                  style={{ color: "var(--muted-foreground)" }}
-                >
-                  {deck.owner_id ? "Your deck" : "Official deck"}
-                </div>
-
                 {/* Delete button */}
-                {deck.owner_id && (
-                  <button
-                    onClick={(e) => handleDelete(e, deck.id)}
-                    disabled={deletingId === deck.id}
-                    className="absolute right-3 top-3 grid h-7 w-7 place-items-center rounded-full opacity-0 transition group-hover:opacity-100 hover:bg-red-500/10 disabled:opacity-50"
-                    style={{ color: "var(--muted-foreground)" }}
-                    aria-label="Delete deck"
-                  >
-                    {deletingId === deck.id ? (
-                      <Loader2 size={14} className="animate-spin" />
-                    ) : (
-                      <Trash2 size={14} />
-                    )}
-                  </button>
-                )}
+                <button
+                  onClick={(e) => handleDelete(e, deck.id)}
+                  disabled={deletingId === deck.id}
+                  className="absolute right-3 top-3 grid h-7 w-7 place-items-center rounded-full opacity-0 transition group-hover:opacity-100 hover:bg-red-500/10 disabled:opacity-50"
+                  style={{ color: "var(--muted-foreground)" }}
+                  aria-label="Delete deck"
+                >
+                  {deletingId === deck.id ? (
+                    <Loader2 size={14} className="animate-spin" />
+                  ) : (
+                    <Trash2 size={14} />
+                  )}
+                </button>
               </div>
             ))}
           </div>

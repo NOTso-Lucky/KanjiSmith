@@ -10,6 +10,7 @@ import Decks from "./pages/Decks";
 import DeckDetail from "./pages/DeckDetail";
 import Settings from "./pages/Settings";
 import FlashcardEditor from "./pages/FlashcardEditor";
+import OfficialDecks from "./pages/OfficialDecks";
 
 
 function App() {
@@ -49,6 +50,14 @@ function App() {
     element={
     <ProtectedRoute>
       <Decks />
+    </ProtectedRoute>
+    }
+    />
+    <Route
+    path="/decks/official"
+    element={
+    <ProtectedRoute>
+      <OfficialDecks />
     </ProtectedRoute>
     }
     />
