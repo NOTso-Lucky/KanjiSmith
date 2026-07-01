@@ -17,7 +17,8 @@ class CardType(str, Enum):
     KANJI = "Kanji"
     GRAMMAR = "Grammar"
     EXPRESSION = "Expression"
-
+    KANA = "Kana"
+    
 class ReviewRating(str, Enum):
     AGAIN = "Again"
     HARD = "Hard"
