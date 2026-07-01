@@ -38,7 +38,7 @@ export default function LoginCard() {
     localStorage.setItem("token", response.access_token);
 
     // Fetch logged-in user
-    const currentUser = await getCurrentUser();
+    const currentUser = await getCurrentUser(response.access_token);  // ← pass the token
 
     // Update AuthContext
     setUser(currentUser);
