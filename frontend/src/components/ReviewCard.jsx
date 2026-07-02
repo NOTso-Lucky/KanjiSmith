@@ -41,9 +41,11 @@ export default function ReviewCard({ card, flipped, onFlip }) {
             {card.expression}
           </div>
 
-          <div className="text-lg" style={{ color: "var(--muted-foreground)" }}>
-            {card.reading}
-          </div>
+          {card.card_type !== "Kana" && (
+            <div className="text-lg" style={{ color: "var(--muted-foreground)" }}>
+              {card.reading}
+            </div>
+          )}
 
           <p className="mt-4 text-sm" style={{ color: "var(--muted-foreground)" }}>
             Tap to reveal answer
