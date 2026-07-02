@@ -70,6 +70,17 @@ class SearchService:
         return self._to_response(card)
 
     def search_by_latin(self, query: str):
+        card = crud_flashcard.get_official_by_meaning(db=self.db, query=query)
+        if card:
+            print(f"[DEBUG] matched by meaning: {card.expression} ({card.meaning})")
+            return self._to_response(card)
+
+        card = crud_flashcard.get_official_by_romaji(db=self.db, query=query)
+        if card:
+            print(f"[DEBUG] matched by romaji: {card.expression} ({card.reading_romaji})")
+            return self._to_response(card)
+
+        print(f"[DEBUG] no DB match, falling through to Jisho for: {query}")
         return self.search_by_resolved_query(query)
 
     def resolve_query(self, query: str):

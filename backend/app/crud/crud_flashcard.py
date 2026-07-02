@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-
+import re
 from app.models.flashcard import Flashcard
 
 
@@ -71,3 +71,51 @@ def get_readable_by_id(db: Session, flashcard_id: int, user_id: int) -> Flashcar
         )
         .first()
     )
+
+
+
+
+def get_official_by_meaning(db: Session, query: str) -> Flashcard | None:
+    query = query.strip().lower()
+    if not query:
+        return None
+
+    pattern = re.compile(rf"\b{re.escape(query)}\b", re.IGNORECASE)
+
+    candidates = (
+        db.query(Flashcard)
+        .filter(
+            Flashcard.owner_id.is_(None),
+            Flashcard.meaning.ilike(f"%{query}%"),
+        )
+        .all()
+    )
+
+    for card in candidates:
+        if pattern.search(card.meaning):
+            return card
+
+    return None
+
+
+def get_official_by_romaji(db: Session, query: str) -> Flashcard | None:
+    query = query.strip().lower()
+    if not query:
+        return None
+
+    pattern = re.compile(rf"\b{re.escape(query)}\b", re.IGNORECASE)
+
+    candidates = (
+        db.query(Flashcard)
+        .filter(
+            Flashcard.owner_id.is_(None),
+            Flashcard.reading_romaji.ilike(f"%{query}%"),
+        )
+        .all()
+    )
+
+    for card in candidates:
+        if card.reading_romaji and pattern.search(card.reading_romaji):
+            return card
+
+    return None

@@ -6,7 +6,7 @@ from app.schemas.search import QueryType, SearchQuery
 KANJI_RE = re.compile(r"[\u4E00-\u9FFF]")
 HIRAGANA_RE = re.compile(r"^[\u3040-\u309F]+$")
 KATAKANA_RE = re.compile(r"^[\u30A0-\u30FF]+$")
-LATIN_RE = re.compile(r"^[A-Za-z]+$")
+LATIN_RE = re.compile(r"^[A-Za-z]+(?:[ '\-][A-Za-z]+)*$")
 
 
 def detect_script(query: str) -> SearchQuery:
@@ -34,9 +34,10 @@ def detect_script(query: str) -> SearchQuery:
         )
 
     if LATIN_RE.fullmatch(query):
+        normalized = " ".join(query.lower().split())
         return SearchQuery(
             original=query,
-            normalized=query.lower(),
+            normalized=normalized,
             query_type=QueryType.LATIN,
         )
 
