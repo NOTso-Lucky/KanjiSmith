@@ -28,3 +28,10 @@ export async function getDueCount() {
     headers: authHeader(),
   });
 }
+
+export async function getRecentActivity(limit = 8) {
+  return api(`/dashboard/activity?limit=${limit}`, {
+    method: "GET",
+    headers: authHeader(),
+  });
+}

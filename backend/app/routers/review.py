@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, BackgroundTasks, Depends, Query
 from sqlalchemy.orm import Session
 from app.crud import crud_review_history
 from app.schemas.review import RecentReviewResponse
@@ -21,12 +21,23 @@ router = APIRouter(
 
 @router.get("/queue", response_model=QueueResponse)
 def get_queue(
+    background_tasks: BackgroundTasks,
     deck_id: int | None = Query(default=None),
     limit: int = Query(default=20, ge=1, le=100),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     cards = review_service.get_due_queue(db, current_user, deck_id, limit)
+
+    missing_example_ids = [
+        card.id for card in cards if card.example_sentence is None
+    ]
+
+    if missing_example_ids:
+        background_tasks.add_task(
+            review_service.backfill_missing_examples,
+            missing_example_ids,
+        )
 
     return QueueResponse(cards=cards, count=len(cards))
 

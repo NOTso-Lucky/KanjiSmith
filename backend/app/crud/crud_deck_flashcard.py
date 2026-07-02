@@ -64,11 +64,17 @@ def bulk_add_flashcards(
     db: Session,
     deck_id: int,
     flashcard_ids: list[int],
-) -> list[DeckFlashcard]:
+) -> None:
     """
     Inserts many DeckFlashcard rows for a deck in one commit, preserving
     the given order as position 1..N. Used when cloning an official deck,
     where we're copying an existing, already-ordered set of flashcard ids.
+
+    Returns nothing — the caller (deck cloning) doesn't need the created
+    rows back, just the fact that they exist. Skipping the per-row
+    db.refresh() that used to run here avoids one DB round trip per
+    flashcard, which was the actual cause of clone being slow on large
+    decks (e.g. ~2,700 round trips for JLPT N1).
     """
 
     entries = [
@@ -82,11 +88,6 @@ def bulk_add_flashcards(
 
     db.add_all(entries)
     db.commit()
-
-    for entry in entries:
-        db.refresh(entry)
-
-    return entries
 
 
 def remove_flashcard_from_deck(

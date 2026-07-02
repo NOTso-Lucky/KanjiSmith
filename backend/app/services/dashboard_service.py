@@ -3,15 +3,16 @@ from __future__ import annotations
 from datetime import date, datetime, timedelta, timezone
 
 from sqlalchemy import func
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.crud import crud_daily_progress, crud_user_settings
 from app.models.daily_progress import DailyProgress
 from app.models.deck import Deck
 from app.models.deck_flashcard import DeckFlashcard
+from app.models.flashcard import Flashcard
+from app.models.review_history import ReviewHistory
 from app.models.user import User
 from app.models.user_flashcard import UserFlashcard
-
 
 def _compute_streaks(
     rows: list[DailyProgress],
@@ -170,3 +171,68 @@ def get_deck_stats(db: Session, user: User) -> list[dict]:
         })
 
     return results
+
+def get_recent_activity(db: Session, user: User, limit: int = 8) -> list[dict]:
+    """
+    Merges three real event sources into one feed, most recent first:
+      - reviews completed (review_history)
+      - decks added to "My Decks" (created OR cloned from official —
+        cloning just creates a normal owned Deck row, so this covers both)
+      - flashcards the user created themselves (excludes forked/edited
+        copies of official cards, since those aren't really "new" cards)
+    """
+
+    review_rows = (
+        db.query(ReviewHistory)
+        .options(joinedload(ReviewHistory.flashcard))
+        .filter(ReviewHistory.user_id == user.id)
+        .order_by(ReviewHistory.reviewed_at.desc())
+        .limit(limit)
+        .all()
+    )
+
+    deck_rows = (
+        db.query(Deck)
+        .filter(Deck.owner_id == user.id)
+        .order_by(Deck.created_at.desc())
+        .limit(limit)
+        .all()
+    )
+
+    flashcard_rows = (
+        db.query(Flashcard)
+        .filter(
+            Flashcard.owner_id == user.id,
+            Flashcard.source_flashcard_id.is_(None),
+        )
+        .order_by(Flashcard.created_at.desc())
+        .limit(limit)
+        .all()
+    )
+
+    events = []
+
+    for review in review_rows:
+        events.append({
+            "type": "review",
+            "text": f"Reviewed {review.flashcard.expression}",
+            "timestamp": review.reviewed_at,
+        })
+
+    for deck in deck_rows:
+        events.append({
+            "type": "deck_added",
+            "text": f'Added "{deck.title}" deck',
+            "timestamp": deck.created_at,
+        })
+
+    for flashcard in flashcard_rows:
+        events.append({
+            "type": "flashcard_added",
+            "text": f"Added {flashcard.expression}",
+            "timestamp": flashcard.created_at,
+        })
+
+    events.sort(key=lambda e: e["timestamp"], reverse=True)
+
+    return events[:limit]

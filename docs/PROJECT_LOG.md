@@ -1,5 +1,71 @@
 # KanjiSmith - PROJECT_LOG.md
 
+## 2026-07-02 — Official Decks (Kana + JLPT Vocab), Dashboard Fixes, Review Queue Fixes
+
+### Security incident (resolved)
+`backend.zip` (containing `.env`) was committed and pushed to GitHub, exposing the Gemini API key,
+Supabase DB password, and JWT `SECRET_KEY`. Google's automated leak scanner flagged it.
+- All three secrets rotated.
+- `backend.zip` scrubbed from git history via `git filter-repo`, force-pushed.
+- `.gitignore` added (`.env`, `*.zip`, `*.db`, `node_modules/`, etc.) to prevent recurrence.
+- Root cause of a follow-up "Could not validate credentials" bug traced to a stale token in
+  `localStorage` surviving the `SECRET_KEY` rotation — not a backend issue.
+
+### Official Decks feature
+- Added `KANA` to `CardType` enum (Postgres `ALTER TYPE ... ADD VALUE` migration).
+- Split deck visibility: `list_decks_for_user` now returns only user-owned decks;
+  new `list_official_decks` / `GET /decks/official` serves official (`owner_id=NULL`) decks separately.
+- New `POST /decks/{deck_id}/clone` — copies an official deck into "My Decks" as a new owned
+  `Deck` row + `DeckFlashcard` rows pointing at the *same* flashcard ids (no flashcard duplication).
+- New frontend `OfficialDecks.jsx` page (`/decks/official`) with "Add to My Decks" per card;
+  `Decks.jsx` gets a "Browse Official Decks" entry point and drops now-dead official-deck branching.
+- **Seed data — Hiragana/Katakana**: `scripts/seed_official_decks.py`, wipes + rebuilds schema,
+  seeds 104 hiragana + 104 katakana (base + dakuten + handakuten + yoon), generated programmatically
+  (not hand-typed) to avoid transcription errors.
+- **Seed data — JLPT N5-N1**: `scripts/seed_jlpt_decks.py`, additive (no wipe, safe to re-run,
+  skips already-seeded levels). Source: `elzup/jlpt-word-list` (MIT, derived from tanos.co.uk
+  community-compiled lists — no official JLPT vocab list exists). ~7,970 words after cleaning
+  (multi-alternate expressions/readings collapsed to primary form) and cross-level de-duplication
+  (word kept at its easiest classification). `reading_romaji` generated via existing `to_romaji()`.
+  Example sentences intentionally left blank at seed time (see backfill below).
+- DB storage impact confirmed negligible (~5-8MB total for ~8,000 rows against 500MB budget).
+
+### Lazy example-sentence backfill
+Rather than 8,000 up-front Gemini calls (hours, likely rate-limited), `GET /reviews/queue` now
+schedules a `BackgroundTask` (`review_service.backfill_missing_examples`) for any returned cards
+missing an example. Generates one example via Gemini, saves it permanently, per card — failures
+are isolated so one bad call doesn't block the rest. Trade-off: a card's example won't appear on
+the *first* review that surfaces it, only from the next time onward (generation happens after the
+response is already sent, so the queue itself never blocks on Gemini).
+
+### Bug fixes
+- **Kana cards spoiling their own answer**: `ReviewCard.jsx` was showing `card.reading` (romaji) on
+  the front face before flipping — fine for vocab (reading is a hint, meaning is the real test) but
+  for kana, reading *is* the entire answer. Now hidden on front specifically for `card_type === "Kana"`.
+- **Duplicate decks on Dashboard**: `get_deck_stats` had a leftover pre-cloning rule that also
+  included any official deck the user had "touched" a card from — once cloning existed, this caused
+  the same deck (original + clone) to show twice with identical progress. Now dashboard "My Decks"
+  only shows owned decks, matching `/decks`.
+- **Recent Activity hardcoded**: replaced fake `ACTIVITY` array with a real `GET /dashboard/activity`
+  endpoint merging reviews, decks added (created or cloned), and self-created flashcards, sorted by
+  recency.
+- **Slow "Add to Deck" clone**: `bulk_add_flashcards` had a per-row `db.refresh()` in a loop —
+  ~2,700 unnecessary round trips when cloning JLPT N1. Removed (return value was unused anyway).
+- **New cards always served alphabetically**: `_new_flashcard_ids` had no `order_by`, so Postgres
+  returned rows in insertion order — JLPT decks were seeded alphabetically by reading, so every
+  session started at あ. Fixed with `ORDER BY random()`; required restructuring as a subquery since
+  Postgres rejects `ORDER BY random()` combined directly with `SELECT DISTINCT`.
+
+### Known Issues / Deferred
+- Search ranking still favors katakana loanwords over kanji (deferred, unchanged).
+- `study_time_minutes` float precision drift (deferred, unchanged).
+- JLPT card examples populate gradually via backfill, not immediately — by design, but worth
+  monitoring Gemini free-tier usage as more cards get reviewed for the first time.
+
+### Next Milestone
+Not yet decided — candidates: Analytics page, API hardening (pagination/filtering/validation),
+or continuing to flesh out Flashcard Editor UX for official-deck-derived cards.
+
 ## 2026-07-01 — Flashcard Editing (fork-on-edit)
 
 Added the ability to edit a flashcard from inside a deck, with fork-on-edit

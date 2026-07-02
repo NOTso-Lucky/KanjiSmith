@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pydantic import BaseModel
 
 
@@ -30,3 +32,13 @@ class DeckStatsResponse(BaseModel):
 class DeckStatsListResponse(BaseModel):
     decks: list[DeckStatsResponse]
     total_decks: int
+
+
+class ActivityItemResponse(BaseModel):
+    type: str
+    text: str
+    timestamp: datetime
+
+
+class ActivityListResponse(BaseModel):
+    activities: list[ActivityItemResponse]

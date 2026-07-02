@@ -3,9 +3,10 @@ from __future__ import annotations
 from datetime import datetime, timezone
 
 from fastapi import HTTPException
-from sqlalchemy import and_, exists, not_, or_
+from sqlalchemy import and_, exists, func, not_, or_
 from sqlalchemy.orm import Session, joinedload
-
+from app.db.database import SessionLocal
+from app.services.gemini import fetch_example
 from app.crud import crud_daily_progress, crud_deck, crud_review_history, crud_user_flashcard, crud_user_settings
 from app.models.deck_flashcard import DeckFlashcard
 from app.models.enums import ReviewRating
@@ -115,7 +116,16 @@ def _new_flashcard_ids(
             DeckFlashcard, DeckFlashcard.flashcard_id == Flashcard.id
         ).filter(DeckFlashcard.deck_id.in_(visible_deck_ids))
 
-    return [row[0] for row in query.distinct().limit(max_count).all()]
+    distinct_ids = query.distinct().subquery()
+
+    randomized = (
+        db.query(distinct_ids.c.id)
+        .order_by(func.random())
+        .limit(max_count)
+        .all()
+    )
+
+    return [row[0] for row in randomized]
 
 
 def get_due_queue(
@@ -224,3 +234,44 @@ def process_review(
     )
 
     return entry
+
+def backfill_missing_examples(flashcard_ids: list[int]) -> None:
+    """
+    Runs as a FastAPI BackgroundTask, after the queue response has already
+    been sent — so it must open its own DB session rather than reusing the
+    request's, since the request's session may already be closed by the
+    time this runs.
+
+    For each flashcard, generates one example sentence via Gemini and
+    saves it permanently. Re-checks example_sentence is still None right
+    before writing, in case another request already backfilled it in the
+    meantime. Each card is wrapped in its own try/except so one failure
+    (a flaky Gemini call, a rate limit hit) doesn't stop the rest of the
+    batch from being processed.
+    """
+    db = SessionLocal()
+
+    try:
+        for flashcard_id in flashcard_ids:
+            try:
+                flashcard = db.get(Flashcard, flashcard_id)
+
+                if flashcard is None or flashcard.example_sentence is not None:
+                    continue
+
+                example = fetch_example(flashcard.expression)
+
+                if example is None:
+                    continue
+
+                flashcard.example_sentence = example.japanese
+                flashcard.example_romaji = example.romaji
+                flashcard.example_translation = example.english
+
+                db.commit()
+
+            except Exception as exc:
+                db.rollback()
+                print(f"[backfill] failed for flashcard {flashcard_id}: {exc}")
+    finally:
+        db.close()
