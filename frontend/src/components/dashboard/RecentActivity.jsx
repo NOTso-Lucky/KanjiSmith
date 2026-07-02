@@ -24,7 +24,7 @@ export default function RecentActivity() {
   useEffect(() => {
     async function fetchActivity() {
       try {
-        const data = await getRecentActivity(8);
+        const data = await getRecentActivity(5);
         setActivities(data.activities);
       } catch (err) {
         setActivities([]);
