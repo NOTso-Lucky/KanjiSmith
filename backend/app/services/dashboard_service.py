@@ -97,29 +97,14 @@ def get_deck_stats(db: Session, user: User) -> list[dict]:
     today = datetime.now(timezone.utc)
     now = today
 
-    # Decks to include: owned by user, or official (owner_id=None) but
-    # with at least one card the user has touched (has a user_flashcards row)
-    touched_official_deck_ids = (
-        db.query(DeckFlashcard.deck_id)
-        .join(Deck, Deck.id == DeckFlashcard.deck_id)
-        .join(
-            UserFlashcard,
-            UserFlashcard.flashcard_id == DeckFlashcard.flashcard_id,
-        )
-        .filter(
-            Deck.owner_id.is_(None),
-            UserFlashcard.user_id == user.id,
-        )
-        .distinct()
-        .subquery()
-    )
-
+    # Only decks the user actually owns (their own decks + clones of
+    # official decks). Official decks themselves are browsed separately
+    # and aren't "My Decks" until cloned — this avoids the same content
+    # showing up twice (once as the official original, once as the clone)
+    # once a user has touched shared flashcards in both.
     decks = (
         db.query(Deck)
-        .filter(
-            (Deck.owner_id == user.id)
-            | Deck.id.in_(touched_official_deck_ids)
-        )
+        .filter(Deck.owner_id == user.id)
         .all()
     )
 
